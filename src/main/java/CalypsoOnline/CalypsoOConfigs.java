@@ -95,7 +95,9 @@ public class CalypsoOConfigs {
             rdp25 =  installDIR + "/resources/bergeyTrainingTree9.xml";
             gg13_5 = installDIR + "/resources/99_otu_taxonomy.txt";
             gg13_8 = installDIR + "/resources/gg_13_8_99_otu_taxonomy.txt";
-            tempDir = "/var/tmp/calypso/";
+            
+            //TODO externalize parameters
+            tempDir = "/tmp/calypso/";
 
             tmpDirWeb = "/opt/glassfish/glassfish/domains/domain1/docroot/tempf/";
         }

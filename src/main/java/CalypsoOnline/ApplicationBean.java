@@ -18,7 +18,7 @@ import org.apache.commons.io.FileUtils;
  *
  * @author lutzK
  */
-@ManagedBean(name = "ApplicationBean")
+@ManagedBean(name = "ApplicationBean", eager = true)
 @ApplicationScoped
 public class ApplicationBean {
 
