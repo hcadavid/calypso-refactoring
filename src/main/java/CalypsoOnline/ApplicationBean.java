@@ -22,6 +22,8 @@ import org.apache.commons.io.FileUtils;
 @ApplicationScoped
 public class ApplicationBean {
 
+    
+    
     HashMap<String, HashMap<String, Integer>> access =
             new HashMap<String, HashMap<String, Integer>>();
 
@@ -118,7 +120,7 @@ public class ApplicationBean {
 
     /** Creates a new instance of ApplicationBean */
     public ApplicationBean() {
-      //  cleanTmpFiles();
+      System.out.println(">>>>>>>>>>>>>>>>>>  APP SCOPED BEAN TEST");
     }
 
     // don't use. othewise, if e.g. datasmart server is restarted, all tmp files
