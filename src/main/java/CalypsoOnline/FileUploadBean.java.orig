@@ -1,0 +1,944 @@
+    /*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package CalypsoOnline;
+
+import CalypsoCommon.Configs;
+import CalypsoCommon.SampleAnnotation;
+import CalypsoCommon.LevelDataMatrix;
+import CalypsoCommon.Hierarchy;
+import CalypsoCommon.Utils;
+import CalypsoCommon.DataMatrix;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpSession;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.myfaces.custom.fileupload.UploadedFile;
+
+/**
+ *
+ * @author lutzK
+ */
+@ManagedBean(name = "FileUploadBean")
+@SessionScoped
+public class FileUploadBean {
+
+    private UploadedFile countsFile;
+    private UploadedFile annotationFile;
+    private UploadedFile taxFile;
+    private UploadedFile taxFile2;
+
+    private String warnings = "";
+
+    private String taxFilter = "0.5";
+    
+
+    private boolean relative = true;
+    private String normalization = "sqrt";
+    private String meanFilter = "0.0";
+
+    private String format = "";
+    private String tax = "";
+    private String taxSelection = "NoTax";
+    private String delimiter = ",";
+    private String filtertaxa = "None";
+    private Boolean taxMode = true;
+    private boolean visibilityDelimiterMode = false;
+    private Configs config = new Configs();
+
+    public FileUploadBean() {
+        if (config.isDataMiner()) {
+            taxFilter = "0.0";
+           
+            relative = false;
+            normalization = "none";
+            taxSelection = "NoTax";
+            filtertaxa = "None";
+        }
+    }
+
+    public String getWarnings() {
+        return warnings;
+    }
+
+    public void setWarnings(String warnings) {
+        this.warnings = warnings;
+    }
+
+    public boolean isRelative() {
+        return relative;
+    }
+
+    public void setRelative(boolean relative) {
+        this.relative = relative;
+    }
+
+    public String getNormalization() {
+        return normalization;
+    }
+
+    public void setNormalization(String normalization) {
+        this.normalization = normalization;
+    }
+
+    public String getMeanFilter() {
+        return meanFilter;
+    }
+
+    public void setMeanFilter(String meanFilter) {
+        this.meanFilter = meanFilter;
+    }
+
+    public String getDelimiter() {
+        return delimiter;
+    }
+
+    public void setDelimiter(String delimiter) {
+        this.delimiter = delimiter;
+    }
+
+    public String getFiltertaxa() {
+        return filtertaxa;
+    }
+
+    public void setFiltertaxa(String filtertaxa) {
+        this.filtertaxa = filtertaxa;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public UploadedFile getAnnotationFile() {
+        return annotationFile;
+    }
+
+    public void setAnnotationFile(UploadedFile annotationFile) {
+        this.annotationFile = annotationFile;
+    }
+
+    public UploadedFile getCountsFile() {
+        return countsFile;
+    }
+
+    public void setCountsFile(UploadedFile countsFile) {
+        this.countsFile = countsFile;
+    }
+
+    public UploadedFile getTaxFile() {
+        return taxFile;
+    }
+
+    public void setTaxFile(UploadedFile taxFile) {
+        this.taxFile = taxFile;
+    }
+
+    public String getTaxFilter() {
+        return taxFilter;
+    }
+
+    public void setTaxFilter(String taxFilter) {
+        this.taxFilter = taxFilter;
+    }
+
+    
+   
+    public String getTax() {
+        return tax;
+    }
+
+    public void setTax(String tax) {
+        this.tax = tax;
+    }
+
+    public String getTaxSelection() {
+        return this.taxSelection;
+    }
+
+    public void setTaxSelection(String taxSelection) {
+        this.taxSelection = taxSelection;
+    }
+
+    public void setSelectionMode() {
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+        dataBean.setTaxFileType(taxSelection);
+        warnings = "";
+
+        if (taxSelection.equals("NoTax") || taxSelection.startsWith("custom")) {
+            dataBean.setVisibilityMode(false);
+        }
+        if (taxSelection.equals("NoTax") || taxSelection.equals("rdp25") || taxSelection.equals("rdp22") || taxSelection.equals("gg13_5")) {
+            this.taxMode = false;
+
+            uploadTaxonomy();
+        }
+
+    }
+
+    public void setTaxMode(Boolean taxMode) {
+        if (taxSelection.equals("NoTax") || taxSelection.equals("rdp25") || taxSelection.equals("rdp22") || taxSelection.equals("gg13_5")) {
+            this.taxMode = true;
+            uploadTaxonomy();
+        }
+        this.taxMode = false;
+    }
+
+    public List getTaxSelections() {
+        List l = new ArrayList();
+        l.add(new SelectItem("NoTax", "No taxonomy"));
+        l.add(new SelectItem("rdp25", "RDP v2.5"));
+        l.add(new SelectItem("rdp22", "RDP v2.2"));
+        l.add(new SelectItem("gg13_5", "Greengenes v13_5 (99%)"));
+        l.add(new SelectItem("customrdp", "Custom RDP file"));
+        l.add(new SelectItem("customgg", "Custom Greengenes file"));
+        //  l.add(new SelectItem("otutable", "From counts file (OTU table)"));
+
+        return l;
+    }
+
+    public Boolean getTaxMode() {
+
+        if (taxSelection.equals("NoTax") || taxSelection.equals("rdp25") || taxSelection.equals("rdp22") || taxSelection.equals("gg13_5")) {
+            return true;
+        }
+        return false;
+    }
+
+    public void uploadTaxonomy() {
+        CalypsoOConfigs configs = new CalypsoOConfigs();
+            //   System.out.println(taxSelection + " uploadTaxonomy function");
+        try {
+
+            if (taxSelection.startsWith("custom")) {
+                if (!(taxFile.toString().isEmpty())) {
+                    doUploadTax(taxFile.getInputStream(), taxFile.getName(), taxSelection);
+                }
+
+            } else if (taxSelection.equals("rdp25")) {
+                //File is = new File(configs.rdp25);
+                //System.out.println(configs.rdp25);
+
+                FileInputStream stream = new FileInputStream(configs.rdp25);
+                doUploadTax(stream, configs.rdp25, taxSelection);
+            } else if (taxSelection.equals("rdp22")) {
+                FileInputStream stream = new FileInputStream(configs.rdp25);
+                doUploadTax(stream, configs.rdp22, taxSelection);
+            } else if (taxSelection.equals("gg13_5")) {
+                FileInputStream stream = new FileInputStream(configs.gg13_5);
+                doUploadTax(stream, configs.gg13_5, taxSelection);
+            } else if (taxSelection.equals("NoTax")) {
+                //do nothing todo
+            }
+        } catch (IOException ex) {
+            FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed " + ex.getMessage(), null));
+            Logger.getLogger(FileUploadBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void uploadAnnot() {
+
+        try {
+            doUploadAnnot(annotationFile.getInputStream(), annotationFile.getName(), delimiter);
+        } catch (IOException ex) {
+            FacesContext.getCurrentInstance().addMessage("annotUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "Internal error. File upload failed.  " + ex.getMessage(), null));
+            Logger.getLogger(FileUploadBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void uploadExample() {
+
+        CalypsoOConfigs configs = new CalypsoOConfigs();
+
+        if (configs.exampleCounts == null) {
+            String errorM = "ERROR: exampleCounts == null!!!";
+            System.out.println(errorM);
+            return;
+        }
+
+        String cFileName;
+        String aFileName;
+        String tFileName = "";
+
+        cFileName = FilenameUtils.getName(configs.getExampleCounts());
+        aFileName = FilenameUtils.getName(configs.getExampleAnnot());
+
+        Configs config = new Configs();
+
+        if (config.isDataMiner()) {
+            format = "dataminer";
+            this.normalization = "none";
+            this.relative = false;
+        } else {
+            tFileName = FilenameUtils.getName(configs.getExampleTaxa());
+            format = "calypso3";
+            this.normalization = "sqrt";
+            this.relative = true;
+        }
+
+        FileInputStream inputCounts;
+        FileInputStream inputAnnot;
+        FileInputStream inputTax;
+
+        //System.out.println(configs.exampleTax);
+        try {
+            inputCounts = new FileInputStream(configs.getExampleCounts());
+            inputAnnot = new FileInputStream(configs.getExampleAnnot());
+
+            if (!doUploadAnnot(inputAnnot, aFileName, ",")) {
+                return;
+            }
+
+            if (!doUploadCounts(inputCounts, cFileName, ",")) {
+                return;
+            }
+
+            if (!config.isDataMiner()) {
+                inputTax = new FileInputStream(configs.getExampleTaxa());
+                if (!doUploadTax(inputTax, tFileName, "rdp22")) {
+                    return;
+                }
+            }
+
+        } catch (FileNotFoundException ex) {
+            System.out.println("File not found " + ex);
+            FacesContext.getCurrentInstance().addMessage("exampleUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed, file not found ", null));
+            Logger.getLogger(FileUploadBean.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+
+    }
+
+    private boolean doUploadAnnot(InputStream input, String fileName, String delimiter) {
+        FacesContext context = FacesContext.getCurrentInstance();
+        HttpSession session = (HttpSession) context.getExternalContext().getSession(false);
+
+        warnings = "";
+
+        System.out.println("Warning: terminating session in FileUploadBean");
+        session.invalidate();
+        CalypsoOConfigs configs = new CalypsoOConfigs();
+
+        // get session data bean
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+        // SessionDataBean dataBean = (SessionDataBean) FacesContext.getCurrentInstance().getExternalContext()
+        //    .getSessionMap().get("SessionDataBean");
+
+        // This only works if myBean2 is session scoped and already created.
+        if (dataBean == null) {
+            this.clearAnnotationFile();
+            // Show error message.
+            FacesContext.getCurrentInstance().addMessage("annotUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload error: No SessionDataBean.", null));
+            return false;
+        }
+
+        dataBean.clearAnnot();
+        dataBean.clearCounts();
+
+        // Prepare file and outputstream.
+        File file = null;
+        OutputStream output = null;
+
+        String prefix = "";
+
+        try {
+            // Create file with unique name in upload folder and write to it.
+            file = configs.getTempFile(".csv");
+            output = new FileOutputStream(file);
+            IOUtils.copy(input, output);
+
+            // Show succes message.
+            // FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+            //     FacesMessage.SEVERITY_INFO, "File upload succeed!", null));
+        } catch (IOException e) {
+            // Cleanup.
+            if (file != null) {
+                file.delete();
+            }
+            this.clearAnnotationFile();
+            // Show error message.
+            FacesContext.getCurrentInstance().addMessage("annotUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed with I/O error.", null));
+
+            // Always log stacktraces (with a real logger).
+            e.printStackTrace();
+            return false;
+        } finally {
+            IOUtils.closeQuietly(output);
+        }
+
+        SampleAnnotation sAnnot = new SampleAnnotation();
+
+        boolean uploadOK = false;
+        String error = "";
+
+        if (sAnnot.parseAnnotation(file, delimiter)) {
+            file.delete();
+
+            int n = sAnnot.getAllSamples().size();
+            int in = sAnnot.getAllIncludedSamples().size();
+
+            String message = "Successfully parsed annotation file, " + n + " samples read, "
+                    + in + " samples included.";
+
+            FacesContext.getCurrentInstance().addMessage("annotUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_INFO, message, null));
+
+            // check for warning messages
+            String wm = sAnnot.getWarning();
+            if (wm.length() > 0) {
+
+                this.warnings = wm;
+
+                FacesContext.getCurrentInstance().addMessage("annotUploadErrors", new FacesMessage(
+                        FacesMessage.SEVERITY_ERROR, wm, null));
+            }
+
+            dataBean.setAnnotFileName(fileName);
+            dataBean.setsAnnot(sAnnot);
+            uploadOK = true;
+
+        } else {
+            error = sAnnot.getError();
+            uploadOK = false;
+        }
+        if (!uploadOK) {
+            file.delete();
+            warnings = "Parsing annotation file failed: " + error;
+            FacesContext.getCurrentInstance().addMessage("annotUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, warnings, null));
+            this.clearAnnotationFile();
+            return false;
+        }
+        if (file != null) {
+            file.delete();
+        }
+
+        return true;
+    }
+
+    private boolean doUploadCounts(InputStream input, String fileName, String delimiter) {
+        System.out.println("Uploading counts  ...");
+        warnings = "";
+
+        CalypsoOConfigs configs = new CalypsoOConfigs();
+
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+
+        // This only works if myBean2 is session scoped and already created.
+        if (dataBean == null) {
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed: No SessionDataBean.", null));
+            return false;
+        }
+
+        // reset value
+        
+        Double minFrac = Double.parseDouble(taxFilter);
+        Double meanF = Double.parseDouble(meanFilter);
+
+        dataBean.setNormalization("none");
+        dataBean.setTss(false);
+        dataBean.setCountsFileName(null);
+
+        // set new empty levelDataMatrix
+        dataBean.setDataM(new LevelDataMatrix(minFrac, 
+                normalization, relative, meanF));
+
+        dataBean.setTaxFileType("NoTax");
+        dataBean.setTaxfilePath("");
+
+        // check if annotation has already bean uploaded
+        String annotationFileName = dataBean.getAnnotFileName();
+        if (annotationFileName.isEmpty() || (annotationFileName.length() == 0)) {
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed, please first upload annotation file.", null));
+            return false;
+        }
+
+        // Prepare file and outputstream.
+        File file = null;
+        OutputStream output = null;
+
+        Utils utils = new Utils();
+        String localFile = "";
+        String prefix = "";
+
+        if (config.isDataMiner()) {
+            format = "dataminer";
+        } else if (format.isEmpty()) {
+            format = "calypso3";
+        }
+
+        try {
+            // Create file with unique name in upload folder and write to it.
+
+            if (format.equals("calypso3")) {
+                file = configs.getTempFile(".csv");
+                output = new FileOutputStream(file);
+                IOUtils.copy(input, output);
+                System.out.println("successuflly completed for calypso3");
+            } // file has to be converted, determin file prefix
+            else {
+                String ext = fileName.substring(fileName.lastIndexOf('.'), fileName.length());
+                localFile = configs.tempFile(ext);
+                output = new FileOutputStream(localFile);
+
+                if (format.equals("qmap")) {
+                    prefix = "annotation";
+                    
+                } else if (format.equals("qtax")) {
+                    prefix = "taxa";
+                    
+                } else if (format.equals("qotu")) {
+                    prefix = "taxa";
+                   
+                } else if (format.equals("calypso2annot")) {
+                    prefix = "anotation";
+                   
+                } else if (format.equals("calypso3annot")) {
+                    IOUtils.copy(input, output);
+                } else if (format.equals("biom")) {
+                    prefix = "anotation";
+                } else if (format.equals("mothur")) {
+                } else if (format.equals("uclust")) {
+                } else if (format.equals("dataminer")) {
+                } else {
+                    // String error = "ERROR: unknown format " + format;
+                    System.out.println("not in the list" + format);
+                }
+                IOUtils.copy(input, output);
+            }
+
+            // Show succes message.
+            // FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+            //     FacesMessage.SEVERITY_INFO, "File upload succeed!", null));
+        } catch (IOException e) {
+            // Cleanup.
+            if (file != null) {
+                file.delete();
+            }
+            this.clearCountsFile();
+            // Show error message.
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed with I/O error.", null));
+
+            // Always log stacktraces (with a real logger).
+            System.out.println(e.toString());
+            e.printStackTrace();
+            return false;
+        } finally {
+            IOUtils.closeQuietly(output);
+        }
+        LevelDataMatrix dataM = new LevelDataMatrix(minFrac,
+                normalization, relative, meanF);
+
+        // convert file into calypso3 format
+        if (!format.equals("calypso3")) {
+            String convertedName = configs.tempFileName(".csv", prefix);
+            String convertedFile = configs.tempFileWeb(convertedName);
+            String taxonomyName = configs.getTempFileName(".txt");
+            //converted
+            if (!utils.convert(localFile, convertedFile, format, taxonomyName, delimiter)) {
+                // Show error message
+                System.out.println("left with error");
+                this.clearCountsFile();
+                FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                        FacesMessage.SEVERITY_ERROR, utils.getError() + " Please check the data format of the file " + fileName, null));
+                return false;
+            }
+
+            file = new File(convertedFile);
+            if (format.equals("biom") || format.equals("qotu")) {
+                if (new File(taxonomyName).exists()) {
+                    dataBean.setTaxFileType("otutable");
+                    dataBean.setTaxfilePath(taxonomyName);
+                    if (taxonomyName.endsWith("txt")) {
+                        this.taxSelection = "NoTax";
+                        FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                                FacesMessage.SEVERITY_INFO, "Successfully built taxonomy.", null));
+                    } else {
+                        FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                                FacesMessage.SEVERITY_ERROR, "File upload failed with I/O error.", null));
+                    }
+
+                } else {
+                    System.out.println("No taxonomy information available");
+                }
+            }
+        }
+
+        // set the annotation file
+        if (!dataM.setSAnnot(dataBean.getsAnnot())) {
+
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "Upload failed.", null));
+
+            String message = "Parsing counts file failed: " + dataM.getError() + ". Check also the format of the count file. Count file should be " + format + ".";
+            FacesContext.getCurrentInstance().addMessage("countsUploadErrors", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, message, null));
+
+            this.clearCountsFile();
+            return false;
+
+        }
+
+        // parse counts file
+        System.out.println("Parsing counts file ...");
+        if (dataM.parseCounts(file, delimiter, filtertaxa)) {
+            file.delete();
+
+            String message = "Successfully parsed counts file, " + dataM.getParsedTaxa()
+                    + " data points per sample included.";
+            if (dataM.getNumLevels() == 0) {
+                message = "Parsing counts file failed: No level found. Check the format of the data file. Data file format should be " + format + ".";
+                if (format.equals("biom")) {
+                    message = "Parsing counts file failed: No level found. Suffix of the file name should be biom.";
+
+                }
+                FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                        FacesMessage.SEVERITY_ERROR, message, null));
+                this.clearCountsFile();
+
+            } else {
+                FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                        FacesMessage.SEVERITY_INFO, message, null));
+            }
+
+            dataBean.setCountsFileName(fileName);
+            dataBean.setDataM(dataM);
+
+            dataBean.setNormalization(normalization);
+            dataBean.setTss(relative);
+
+            String wm = dataM.getWarning();
+            if (wm.length() > 0) {
+                warnings = wm;
+                FacesContext.getCurrentInstance().addMessage("countsUploadErrors", new FacesMessage(
+                        FacesMessage.SEVERITY_ERROR, wm, null));
+            }
+
+        } else {
+            if (!config.getDebug()) {
+                file.delete();
+            }
+
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "Parsing Counts file failed.", null));
+
+            String message = "Parsing counts file failed: " + dataM.getError() + ". Check for right format. Data file format should be " + format;
+            FacesContext.getCurrentInstance().addMessage("countsUploadErrors", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, message, null));
+            this.clearCountsFile();
+            return false;
+        }
+        if (file != null) {
+            file.delete();
+        }
+
+        FacesContext context = FacesContext.getCurrentInstance();
+        ApplicationBean appBean = (ApplicationBean) context.getELContext().getELResolver().getValue(context.getELContext(), null, "ApplicationBean");
+        appBean.increaseSessionNumber();
+
+        return true;
+    }
+
+    private boolean doUploadTax(InputStream input, String fileName, String taxonomyType) {
+        CalypsoOConfigs configs = new CalypsoOConfigs();
+
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+        // This only works if myBean2 is session scoped and already created.
+        if (dataBean == null) {
+            FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed: No SessionDataBean.", null));
+            return false;
+        }
+
+        if (dataBean == null) {
+            //       this.clearTaxFile();
+            // Show error message.
+            FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload error: No SessionDataBean.", null));
+            return false;
+        }
+        //dataBean.clearTax();
+        LevelDataMatrix ldm = dataBean.getDataM();
+        HashMap hm = ldm.getDataM();
+        Set<String> levelsCounts = hm.keySet();
+        List<String> levelsCountsSorted = new ArrayList<String>();
+        //collects all level and taxa and store in a hash: level[key] => list of taxa [value]
+        LinkedHashMap levelTaxa = new LinkedHashMap();
+        HashMap<String, String> ranks = new HashMap<String, String>();
+        ranks.put("k", "superkingdom");
+        ranks.put("p", "phylum");
+        ranks.put("c", "class");
+        ranks.put("o", "order");
+        ranks.put("f", "family");
+        ranks.put("g", "genus");
+        ranks.put("s", "species");
+        ranks.put("d", "superkingdom");
+        //check which level exist and which taxa belong to each level
+        for (String s : levelsCounts) {
+            String lowerS = s.toLowerCase();
+            DataMatrix dataLevel = ldm.getDataMatrix(s);
+            if (lowerS.equals("domain")) {
+                s = "superkingdom";
+            }
+            LinkedHashSet<String> taxa = dataLevel.getOrderedTaxa(0, true);
+            if (lowerS.startsWith("otu")) {
+                for (String otu : taxa) {
+                    //possible cases in counts matrix
+                    //OTU, p__Bacteroidetes; f__Rikenellaceae 1,1.0,1.0,3.0,5
+                    //OTU, p__Bacteroidetes; g__Bacteroides s__eggerthii 20,0.0
+                    //OTU, p__Firmicutes 8011,0.0
+                    //OTU,k__Bacteria 23,0.0,0
+                    if (!(otu.contains("Unclassified"))) {
+                        String lowestTaxon = "";
+                        String lowestRank = "";
+                        String[] col = otu.split("__");
+                        if (col[col.length - 1].contains("_")) {
+                            //  System.out.println(lowerS+": "+otu + " " + col.length);
+
+                            if (col.length == 6) {
+                                if (col[4].equals("s") && col[2].equals("g")) {
+                                    int index = col[5].lastIndexOf("_");
+                                    lowestTaxon = col[3] + "_" + col[5].substring(0, index);
+                                    lowestRank = "species";
+                                } else {
+                                    String message = "wront otu format: " + otu + "; ";
+                                    warnings = warnings + message;
+                                    FacesContext.getCurrentInstance().addMessage("taxUploadErrors", new FacesMessage(
+                                            FacesMessage.SEVERITY_ERROR, message, null));
+                                }
+                            } else if (col.length == 4) {
+                                lowestRank = ranks.get(col[2]);
+                              
+                                int index = col[3].lastIndexOf("_");
+                                lowestTaxon = col[3].substring(0, index);
+                            } else if (col.length == 2) {
+                                lowestRank = ranks.get(col[0]);
+                                int index = col[1].lastIndexOf("_");
+                                lowestTaxon = col[1].substring(0, index);
+                            } else {
+                                String message = "wrong otu format: " + otu + "; ";
+                                warnings = warnings + message;
+
+                                FacesContext.getCurrentInstance().addMessage("taxUploadErrors", new FacesMessage(
+                                        FacesMessage.SEVERITY_ERROR, message, null));
+                            }
+
+                            if (levelTaxa.containsKey(lowestRank.toLowerCase())) {
+                                ((LinkedHashSet) levelTaxa.get(lowestRank.toLowerCase())).add(lowestTaxon);
+
+                            } else {
+                                levelTaxa.put(lowestRank.toLowerCase(), new LinkedHashSet());
+                                ((LinkedHashSet) levelTaxa.get(lowestRank.toLowerCase())).add(lowestTaxon);
+
+                            }
+                        } else {
+                            String message = "wrong otu format";
+                            warnings = warnings + message;
+
+                            FacesContext.getCurrentInstance().addMessage("taxUploadErrors", new FacesMessage(
+                                    FacesMessage.SEVERITY_ERROR, message, null));
+                        }
+
+                    }
+                }
+
+            } else {
+                levelTaxa.put(s.toLowerCase(), taxa);
+            }
+
+        }
+
+        // Prepare file and outputstream.
+        File file = null;
+        OutputStream output = null;
+        String prefix = "";
+
+        try {
+            // Create file with unique name in upload folder and write to it.
+            file = configs.getTempFile(".txt");
+            output = new FileOutputStream(file);
+            IOUtils.copy(input, output);
+            // Show succes message.
+            // FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+            //     FacesMessage.SEVERITY_INFO, "File upload succeed!", null));
+        } catch (IOException e) {
+            // Cleanup.
+            if (file != null) {
+                file.delete();
+            }
+
+            // this.clearTaxFile();
+            // Show error message.
+            FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed with I/O error.", null));
+
+            // Always log stacktraces (with a real logger).
+            e.printStackTrace();
+            return false;
+        } finally {
+            IOUtils.closeQuietly(output);
+        }
+
+        Hierarchy taxonomy = new Hierarchy(taxonomyType);
+        CalypsoOConfigs config = new CalypsoOConfigs();
+        String filePath = taxonomy.parseTaxonomy(file, levelTaxa);
+
+        if (filePath.endsWith("txt")) {
+            dataBean.setTaxFileType(taxonomyType);
+            dataBean.setTaxfilePath(filePath);
+
+            String uploadwarnings = taxonomy.getWarnings();
+            System.out.println(uploadwarnings + "__" + warnings.length() + "__" + warnings);
+
+            dataBean.setVisibilityMode(true);
+            if (uploadwarnings.equals("") && warnings.length() == 0) {
+                FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                        FacesMessage.SEVERITY_INFO, "Successfully built taxonomy.", null));
+            } else {
+
+                warnings = warnings + " " + uploadwarnings;
+                if (warnings.length() > 750) {
+                    warnings = warnings.substring(0, 750) + "...";
+                }
+                FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                        FacesMessage.SEVERITY_INFO, "Built taxonomy with warnings!", null));
+
+                if (uploadwarnings.length() > 750) {
+                    uploadwarnings = uploadwarnings.substring(0, 750) + "...";
+                }
+                FacesContext.getCurrentInstance().addMessage("taxUploadErrors", new FacesMessage(
+                        FacesMessage.SEVERITY_ERROR, uploadwarnings, null));
+
+            }
+        } else {
+            dataBean.setTaxFileType("NoTax");
+            dataBean.setTaxfilePath("");
+            FacesContext.getCurrentInstance().addMessage("taxUploadForm2", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed with I/O error. " + taxonomy.getWarnings(), null));
+        }
+        return true;
+    }
+
+    public void uploadCounts() {
+        try {
+            doUploadCounts(countsFile.getInputStream(), countsFile.getName(), delimiter);
+        } catch (IOException ex) {
+            FacesContext.getCurrentInstance().addMessage("countsUploadForm", new FacesMessage(
+                    FacesMessage.SEVERITY_ERROR, "File upload failed:  " + ex.getMessage(), null));
+            Logger
+                    .getLogger(FileUploadBean.class
+                            .getName()).log(Level.SEVERE, null, ex);
+        }
+        uploadTaxonomy();
+    }
+
+    public void clear() {
+        clearCountsFile();
+
+    }
+
+    public void clearCountsFile() {
+        countsFile = null;
+
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+
+        // This only works if myBean2 is session scoped and already created.
+        if (dataBean != null) {
+            dataBean.clearCounts();
+        }
+
+    }
+
+    public void clearAnnotationFile() {
+        annotationFile = null;
+
+        SessionDataBean dataBean = SessionDataBean.getCurrentInstance();
+
+        // This only works if myBean2 is session scoped and already created.
+        if (dataBean != null) {
+            dataBean.clearAnnot();
+        }
+    }
+
+    public List getFormats() {
+        List l = new ArrayList();
+        l.add(new SelectItem("calypso3", "Calypso V3"));
+        l.add(new SelectItem("biom", "BIOM"));
+        // l.add(new SelectItem("calypso2", "Calypso V2"));
+        //   l.add(new SelectItem("qmap", "QIIME Mapping"));
+        //   l.add(new SelectItem("qtax", "QIIME assign_taxonomy.py"));
+        l.add(new SelectItem("qotu", "QIIME OTU table"));
+        l.add(new SelectItem("mothur", "MOTHUR"));
+        //     l.add(new SelectItem("UCLUST", "uclust"));
+        //     l.add(new SelectItem("mgrast", "MG-RAST"));
+        return (l);
+    }
+
+    public List getDelimiters() {
+        List l = new ArrayList();
+
+        l.add(new SelectItem(",", "Comma Separated"));
+        l.add(new SelectItem(";", "Semicolon Separated"));
+        l.add(new SelectItem("\t", "Tab Separated"));
+
+        return (l);
+    }
+
+    public List getFiltertaxas() {
+        List l = new ArrayList();
+
+        l.add(new SelectItem("None", "None"));
+        l.add(new SelectItem("Cyanobacteria", "Cyanobacteria"));
+        l.add(new SelectItem("Chloroplast", "Chloroplast"));
+
+        return (l);
+    }
+
+    public List getNormMethods() {
+        List l = new ArrayList();
+
+        l.add(new SelectItem("none", "None"));
+        l.add(new SelectItem("sqrt", "SquareRoot"));
+        l.add(new SelectItem("clr", "Centred Log-Ratio"));
+        l.add(new SelectItem("log", "Log"));
+        l.add(new SelectItem("quantile", "Quantile"));
+        if (config.isDataMiner()) {
+            l.add(new SelectItem("vsn", "VSN"));
+        }
+
+        return (l);
+    }
+}

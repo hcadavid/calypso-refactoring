@@ -1,0 +1,10 @@
+<div id="indexRightColumn"></div>
+<h:outputText value="#{ApplicationBean.increaseRequestNumber}" />
+</div>
+
+    </div>
+    <div id="footer">
+        <h:outputText value="Version: #{SessionDataBean.version}" /> &nbsp; | &nbsp; Contact: L.Krause@uq.edu.au &nbsp; | &nbsp; <h:outputText value="Number of sessions today: #{ApplicationBean.sessionNumber}" />&nbsp; | &nbsp; <a href="disclaimer.jsp">Disclaimer</a>
+    </div> 
+
+</body>

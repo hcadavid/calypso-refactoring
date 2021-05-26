@@ -1,0 +1,325 @@
+/* 
+    Document   : calypso
+    Created on : Sep 2, 2011, 6:29:37 PM
+    Author     : lutzK
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    /*width: 850px;*/
+    text-align: center;
+    margin: 20px auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#main { background: #edf2f5;
+        margin: 60px 0 0 60px;
+}
+
+#white{
+    height: 20px;
+    background: white;
+}
+
+#header {
+    height: 40px;
+    background: #edf2f5;
+}
+
+#topSelect {
+    
+}
+
+#content {
+    background: #edf2f5;
+    margin: 10px 0 0 20px;
+    overflow: auto;
+   /* border: 5px solid black; */
+}
+
+#data {
+    overflow: auto;
+    margin: 0px 0 0 0px;
+    background: #edf2f5;
+}
+
+#footer {
+    clear: left;
+    background: white;
+    font-size: small;
+    text-align: center;
+}
+
+#indexLeftColumn {
+    height: 450px;
+    width: 350px;
+    float: left;
+    background: #e0ebf1;
+    margin: 0px 0 0 0px;
+}
+
+#indexRightColumn {
+    height: 150px;
+    /*width: 500px;*/
+    float: left;
+    background: #E6F1F3;
+    margin: 0px 0 0 0px;
+}
+
+#logo {
+    height: 155px;
+    width: 155px;
+    float: left;
+    margin-left: 30px;
+    margin-top: -10px;
+}
+
+#logoText {
+    float: left;
+    margin: -28px 0 0 10px;
+    /* font styles apply to text within alt tags */
+    font-family: 'American Typewriter', Courier, monospace;
+    font-size: 60px;
+    color: #333;
+}
+
+#widgetBar {
+    height: 50px;
+    width: 850px;
+    float: right;
+    background: #ccc;
+}
+
+.headerWidget {
+    width: 194px;
+    margin: 20px 2px;
+    font-size: small;
+    float: right;
+    line-height: 25px;
+    background: #aaa;
+}
+
+.categoryBox {
+    height: 176px;
+    width: 212px;
+    margin: 21px 14px 6px;
+    float: inherit;
+    background: #ccc;
+}
+
+.categoryLabelText {
+    line-height: 150%;
+    font-size: x-large;
+}
+
+/*
+
+own conficuations
+
+*/
+
+#menu{
+   background: #036fab;
+   margin: 20px 0 0 50px;
+   color: #AFAFAF;
+}
+A:link {color: black; text-decoration: underline; font-style: italic;}
+A:visited {color: black; text-decoration: underline; font-style: italic;}
+
+#nutshell {
+    text-align:left
+}
+
+.nutshell h1 {text-align:left}
+.nutshell h2 {text-align:left}
+.nutshell h3 {text-align:left}
+.nutshell h4 {text-align:left}
+
+.menu A:link {
+    font-style: normal;
+    text-decoration: none;
+    color: #E6F1F3;
+}
+.menu A:visited {
+    font-style: normal;
+    text-decoration: none;
+    color: #E6F1F3;
+}
+.menu A:active {text-decoration: none; color: red;}
+.menu A:hover {
+    text-decoration: underline overline;
+    color: white;
+    font-style: oblique;
+}
+
+td {
+    text-align: left;
+}
+
+/*
+Tabbed pane my faces
+*/
+
+table.tabbedPane {
+    width: 100% !important;
+    vertical-align: top !important;
+    border-collapse: separate !important;
+    border-spacing: 0px !important;
+    background-color: #FFF000 !important;
+}
+
+td.activeTab {
+    width: 150px !important;
+    font-size: 100% !important;
+    background-color: #FFF000 !important;
+    border-top: 2px solid #91A0CA !important;
+    border-left: 2px solid #91A0CA !important;
+    border-right: 2px solid #91A0CA !important;
+    border-bottom: 1px none !important;
+    padding: 2px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+td.activeTab input {
+    background-color: #AAAAAA !important;
+    font-size: 100% !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+
+td.inactiveTab {
+    width: 150px !important;
+    font-size: 100% !important;
+    background-color: #EBEEF8 !important;
+    border-top: 2px solid #91A0CA !important;
+    border-left: 2px solid #91A0CA !important;
+    border-right: 2px solid #91A0CA !important;
+    border-bottom: 2px solid #91A0CA !important;
+    padding: 2px !important;
+    text-align: center !important;
+    font-weight: bold !important;
+}
+td.inactiveTab input {
+    background-color: #EBEEF8 !important;
+    font-size: 100% !important;
+    text-align:center !important;
+    font-weight: bold !important;
+}
+td.activeSub {
+    background-color: #FFFFFF !important;
+    padding: 0px !important;
+    border: 1px solid #FFFFFF !important;
+}
+td.inactiveSub {
+    background-color: #FFFFFF !important;
+    padding: 0px !important;
+    border: 1px solid #FFFFFF !important;
+}
+td.myFaces_panelTabbedPane_emptyHeaderCell {
+    background-color: #FFFFFF !important;
+}
+
+.myFaces_panelTabbedPane_activeHeaderCell input:hover,
+.myFaces_panelTabbedPane_inactiveHeaderCell input:hover{
+  color:#fff !important;
+  background:#08c !important;
+}
+
+td.tabContent {
+    background-color: #FFFFFF !important;
+    border-left: 2px solid #91A0CA !important;
+    border-right: 2px solid #91A0CA !important;
+    border-bottom: 2px solid #91A0CA !important;
+    vertical-align: top !important;
+    padding-top: 5px !important;
+    padding-left: 5px !important;
+    height: 100% !important;
+    text-align:left !important;
+    width:765px;
+}
+
+dsp { line-height: 200%; }
+
+rbf {color: #660000;
+     font-size: x-large;
+         font-weight:bold;
+text-decoration:underline;
+}
+
+bbf {color: black;
+     font-size: x-large;
+         font-weight:bold;
+text-decoration:underline;
+}
+
+rbfl {color: #660000;
+     font-size: large;
+         font-weight:bold;
+text-decoration:underline;}
+
+bbu {color: black;
+         font-weight:bold;
+text-decoration:underline;}
+
+blinks {
+    text-decoration:blink;
+}
+
+bbfl {color: black;
+     font-size: large;
+         font-weight:bold;
+text-decoration:underline;
+}
+
+
+/* Table format */
+table.sortable
+{text-align: center;
+font-family: Verdana, Geneva, Arial, Helvetica, sans-serif ;
+font-weight: normal;
+font-size: 11px;
+color: #fff;
+width: 280px;
+background-color: #666;
+border: 0px;
+border-collapse: collapse;
+border-spacing: 0px;}
+
+table.sortable td
+{background-color: #CCC;
+color: #000;
+padding: 4px;
+text-align: left;
+border: 1px #fff solid;}
+
+
+/* Sortable tables */
+table.sortable thead
+{background-color: #666;
+color: #fff;
+padding: 4px;
+text-align: left;
+border-bottom: 2px #fff solid;
+font-size: 12px;
+ cursor: default;
+font-weight: bold;}
+
+/* Sortable tables */
+table.sortable.old thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}

@@ -1,0 +1,41 @@
+ <h3>In a nutshell</h3 >
+
+<ol>
+        <li>Select a rank (e.g. Genus), set "Regress by" to "Taxa vs Envp" and press "Set Mode",
+            followed by "Run Analysis". The displayed table shows the effect of the environmental
+            variables on the abundance of taxa. For each taxon a regression model is fit
+            of the form:<br/>abundance of taxon = env1 + env2 + env3 ...,<br/>where env1, env2, ... are
+            the environmental variables. For each taxon and each
+            environmental variable a p-value is shown, indicating if the variable impacts
+            the abundance of the respective taxon. Select an environmental variable in the header of the displayed
+            table to sort the p-values. If you have paired data, select the "Paired" checkbox
+            and press "Run Analysis". In the case of paired data, a linear mixed effects
+            model is fit of the form: 
+            <br/> abundance of taxon = env1 + env2 + env3 ... + pair1 + pair2 + ...,<br/>
+            where the environmental variables are included as fixed effects and the pairs as
+            random effect.
+        </li>
+         <li>Use the Taxa drop-down menu to select a specific taxon or OTU. Press "Run Analysis"
+             to analyze the correlation between the abundance of the selected taxon/OTU and the
+             environmental variables.
+         <li>Next, do a regression analysis to identify complex associations between
+             environmental variables and the community diversity. First, set Taxa to "All" and
+             "Regress by" to "Diversity vs Envp" and press "Set Mode". Next set the Index
+             to either "Shannon" or "Richness" and press "Run Analysis". In the
+             generated figure, first the p-values of the
+             regression model are displayed. Additionally,
+             for each environmental variable a two scatter-plots are shown. The p-values dispalyed
+             in the scatter plot indicate if the Pearson correlation between the environmental
+             variable and the diversity index is significant. Select the "Paired" checkbox for
+             paired data.
+         </li>
+         <li>You can further do a regression analysis to identify environmental variables
+             impacting the global community composition. Set "Regress by" to "Distance vs Envp"
+             and press "Set Mode". Next, set Taxa to "All", "Distance Method"
+             to "Jaccard" and press "Run Analysis".
+         </li>
+         <li>Calculate multiple linear regression model to explain the grouping of samples
+             as specified in the meta data file.
+             Set "Regress by" to Group and press "Set Mode". Select different groups for
+             condition A and condition B. Set Taxa to "All". Press "Run Analysis".
+     </ol>
